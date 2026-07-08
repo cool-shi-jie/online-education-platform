@@ -1,0 +1,9 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+django-filter
+PyMySQL
+python-dotenv
+Pillow
+reportlab

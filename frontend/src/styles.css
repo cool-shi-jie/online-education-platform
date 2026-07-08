@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  background: #f5f7fb;
+  color: #1f2937;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+.page {
+  padding: 20px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}

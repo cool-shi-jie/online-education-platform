@@ -1,0 +1,865 @@
+===== FILE frontend/src/views/CourseListView.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\CourseListView.vue
+@@
+     <div class="toolbar">
+-      <h2>课程广场</h2>
+-      <el-input v-model="keyword" placeholder="搜索课程" clearable style="width: 260px" @keyup.enter="load" />
++      <div>
++        <h2>课程广场</h2>
++        <p class="muted">按分类快速发现感兴趣的课程，也可以输入关键词搜索。</p>
++      </div>
++      <el-input v-model="keyword" placeholder="搜索课程" clearable style="width: 260px" @clear="load" @keyup.enter="load" />
++    </div>
++
++    <div class="category-filter">
++      <el-button :type="selectedCategory === '' ? 'primary' : 'default'" round @click="selectCategory('')">全部</el-button>
++      <el-button
++        v-for="category in categories"
++        :key="category"
++        :type="selectedCategory === category ? 'primary' : 'default'"
++        round
++        @click="selectCategory(category)"
++      >
++        {{ category }}
++      </el-button>
+     </div>
++
+     <div class="card-grid">
+       <el-card v-for="course in courses" :key="course.id" shadow="hover">
+-        <template #header>{{ course.title }}</template>
+-        <p class="muted">{{ course.category }} · {{ course.language }}</p>
+-        <p>{{ course.description }}</p>
+-        <el-button type="primary" @click="$router.push(`/courses/${course.id}`)">查看详情</el-button>
++        <template #header>
++          <div class="course-card-header">
++            <b>{{ course.title }}</b>
++            <el-tag size="small">{{ course.category }}</el-tag>
++          </div>
++        </template>
++        <p class="muted">教师：{{ course.teacher_name }} · {{ course.language }} · {{ course.enrolled_count || 0 }} 人学习</p>
++        <p class="course-description">{{ course.description }}</p>
++        <div class="course-footer">
++          <span class="muted">共 {{ course.chapters?.length || 0 }} 章</span>
++          <el-button type="primary" @click="$router.push(`/courses/${course.id}`)">查看详情</el-button>
++        </div>
+       </el-card>
+     </div>
+@@
+ <script setup>
+ onMounted(load)
++const fallbackCategories = [
++  '计算机与互联网',
++  '人工智能与数据',
++  '经济管理',
++  '语言学习',
++  '学科基础',
++  '考研与升学',
++  '职业发展',
++  '设计与创意',
++  '人文社科',
++  '自然科学与工程',
++  '医学与健康',
++  '法律与公共事务',
++  '兴趣拓展',
++  '其他'
++]
++
++const categories = ref([...fallbackCategories])
+ const courses = ref([])
+ const keyword = ref('')
++const selectedCategory = ref('')
+ const loading = ref(false)
+ 
+ async function load() {
+   loading.value = true
+   try {
+-    const { data } = await http.get('/courses/', { params: { status: 'published', search: keyword.value } })
++    const params = { status: 'published', search: keyword.value }
++    if (selectedCategory.value) {
++      params.category = selectedCategory.value
++    }
++    const { data } = await http.get('/courses/', { params })
+     courses.value = data.results || data
+   } finally {
+     loading.value = false
+   }
+ }
+ 
+-onMounted(load)
++async function loadCategories() {
++  try {
++    const { data } = await http.get('/courses/categories/')
++    categories.value = data
++  } catch {
++    categories.value = [...fallbackCategories]
++  }
++}
++
++function selectCategory(category) {
++  selectedCategory.value = category
++  load()
++}
++
++onMounted(() => {
++  loadCategories()
++  load()
++})
+ </script>
++
++<style scoped>
++.category-filter {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 10px;
++  margin-bottom: 18px;
++}
++
++.course-card-header,
++.course-footer {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 12px;
++}
++
++.course-description {
++  min-height: 72px;
++}
++</style>
+*** End Patch
+
+===== FILE frontend/src/views/teacher/TeacherCoursesView.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\	eacher\TeacherCoursesView.vue
+@@
+ .card-actions {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+ }
++
++.card-actions :deep(.el-button + .el-button) {
++  margin-left: 0;
++}
+ </style>
+*** End Patch
+
+===== FILE frontend/src/views/teacher/TeacherExamsView.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\	eacher\TeacherExamsView.vue
+@@
+ .choice-panel {
+   padding: 12px 36px;
+   background: #f9fafb;
+ }
++
++.question-choice-editor {
++  display: grid;
++  width: 100%;
++  gap: 10px;
++}
++
++.question-choice-row {
++  display: grid;
++  grid-template-columns: auto minmax(0, 1fr) auto auto;
++  gap: 10px;
++  align-items: center;
++}
++
++.choice-order {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  width: 26px;
++  height: 26px;
++  border-radius: 999px;
++  color: #3730a3;
++  background: #e0e7ff;
++  font-size: 12px;
++  font-weight: 700;
++}
++
++.choice-editor-actions {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 10px;
++  align-items: center;
++}
+ 
+ @media (max-width: 720px) {
+   .info-grid {
+     grid-template-columns: 1fr;
+   }
++
++  .question-choice-row {
++    grid-template-columns: auto minmax(0, 1fr);
++  }
+ }
+ </style>
+*** End Patch
+
+===== FILE frontend/src/views/student/CertificatesView.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\student\CertificatesView.vue
+@@
+ <template>
+   <div class=\"page\">
+-    <h2>我的证书</h2>
+-    <el-table :data=\"certificates\">
+-      <el-table-column prop=\"code\" label=\"证书编号\" />
+-      <el-table-column prop=\"course_title\" label=\"课程\" />
+-      <el-table-column prop=\"issued_at\" label=\"颁发时间\" />
+-      <el-table-column label=\"下载\">
+-        <template #default=\"{ row }\">
+-          <el-link v-if=\"row.file\" :href=\"row.file\" target=\"_blank\" type=\"primary\">下载证书</el-link>
+-          <span v-else class=\"muted\">待生成文件</span>
+-        </template>
+-      </el-table-column>
+-    </el-table>
++    <div class=\"certificate-hero\">
++      <div>
++        <h2>我的证书</h2>
++        <p class=\"muted\">达到课程优秀线后，系统会自动发放课程结业优秀证书。</p>
++      </div>
++      <el-tag type=\"success\" size=\"large\">共 {{ certificates.length }} 张</el-tag>
++    </div>
++
++    <div v-if=\"certificates.length\" class=\"certificate-grid\">
++      <el-card v-for=\"certificate in certificates\" :key=\"certificate.id\" shadow=\"hover\" class=\"certificate-card\">
++        <div class=\"card-ribbon\">网页证书</div>
++        <div class=\"card-body\">
++          <span class=\"cert-mark\">D社</span>
++          <h3>{{ certificate.course_title }}</h3>
++          <p class=\"muted\">获证人：{{ certificate.student_name }}</p>
++          <div class=\"cert-meta\">
++            <span>证书编号</span>
++            <b>{{ certificate.code }}</b>
++          </div>
++          <div class=\"cert-meta\">
++            <span>颁发时间</span>
++            <b>{{ formatDate(certificate.issued_at) }}</b>
++          </div>
++        </div>
++        <div class=\"card-actions\">
++          <el-button type=\"primary\" @click=\"openCertificate(certificate)\">查看证书</el-button>
++          <el-link v-if=\"certificate.file\" :href=\"certificate.file\" target=\"_blank\" type=\"primary\">下载证书</el-link>
++        </div>
++      </el-card>
++    </div>
++    <el-empty v-else description=\"暂无证书，达到课程优秀线后自动获得证书\" />
++
++    <el-dialog v-model=\"certificateVisible\" title=\"网页虚拟证书\" width=\"760px\">
++      <div v-if=\"currentCertificate\" class=\"virtual-certificate\">
++        <div class=\"certificate-inner\">
++          <div class=\"certificate-topline\">D社在线教育平台</div>
++          <h1>课程结业优秀证书</h1>
++          <p class=\"certificate-text\">
++            兹证明
++            <strong>{{ currentCertificate.student_name }}</strong>
++            同学已完成
++            <strong>{{ currentCertificate.course_title }}</strong>
++            课程学习，并在课程考试中达到优秀标准，特发此证。
++          </p>
++          <div class=\"certificate-info\">
++            <div>
++              <span>证书编号</span>
++              <b>{{ currentCertificate.code }}</b>
++            </div>
++            <div>
++              <span>颁发日期</span>
++              <b>{{ formatDate(currentCertificate.issued_at) }}</b>
++            </div>
++          </div>
++          <div class=\"certificate-footer\">
++            <span>认证平台：D社在线教育平台</span>
++            <span>优秀结业认证</span>
++          </div>
++        </div>
++      </div>
++      <template #footer>
++        <el-link v-if=\"currentCertificate?.file\" :href=\"currentCertificate.file\" target=\"_blank\" type=\"primary\">下载证书文件</el-link>
++        <el-button @click=\"certificateVisible = false\">关闭</el-button>
++      </template>
++    </el-dialog>
+   </div>
+ </template>
+ 
+ <script setup>
+ import { onMounted, ref } from 'vue'
+ import http from '../../api/http'
+ 
+ const certificates = ref([])
++const certificateVisible = ref(false)
++const currentCertificate = ref(null)
+@@
+ async function load() {
+   const { data } = await http.get('/certificates/')
+   certificates.value = data.results || data
+ }
++
++function openCertificate(certificate) {
++  currentCertificate.value = certificate
++  certificateVisible.value = true
++}
++
++function formatDate(value) {
++  if (!value) return '暂无'
++  return new Date(value).toLocaleDateString('zh-CN')
++}
+ 
+ onMounted(load)
+ </script>
++
++<style scoped>
++.certificate-hero {
++  display: flex;
++  justify-content: space-between;
++  gap: 16px;
++  align-items: center;
++  margin-bottom: 18px;
++}
++
++.certificate-hero h2 {
++  margin: 0 0 8px;
++}
++
++.certificate-grid {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
++  gap: 16px;
++}
++
++.certificate-card {
++  position: relative;
++  overflow: hidden;
++  border-radius: 18px;
++}
++
++.card-ribbon {
++  position: absolute;
++  top: 16px;
++  right: -34px;
++  width: 128px;
++  padding: 5px 0;
++  color: #fff;
++  background: #4f46e5;
++  text-align: center;
++  font-size: 12px;
++  transform: rotate(35deg);
++}
++
++.card-body {
++  padding-right: 36px;
++}
++
++.cert-mark {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  width: 52px;
++  height: 52px;
++  border-radius: 16px;
++  color: #fff;
++  background: linear-gradient(135deg, #2563eb, #7c3aed);
++  font-weight: 800;
++}
++
++.certificate-card h3 {
++  margin: 14px 0 8px;
++  color: #0f172a;
++}
++
++.cert-meta {
++  display: grid;
++  gap: 4px;
++  margin-top: 12px;
++  padding: 10px;
++  border: 1px solid #e2e8f0;
++  border-radius: 12px;
++  background: #f8fafc;
++}
++
++.cert-meta span,
++.certificate-info span {
++  color: #64748b;
++  font-size: 12px;
++}
++
++.cert-meta b {
++  color: #1e293b;
++}
++
++.card-actions {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 12px;
++  align-items: center;
++  margin-top: 18px;
++}
++
++.virtual-certificate {
++  padding: 16px;
++  border-radius: 18px;
++  background: linear-gradient(135deg, #eef2ff, #f8fafc);
++}
++
++.certificate-inner {
++  padding: 44px;
++  border: 8px double #4f46e5;
++  border-radius: 18px;
++  background:
++    radial-gradient(circle at top left, rgba(79, 70, 229, 0.12), transparent 34%),
++    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.12), transparent 34%),
++    #fff;
++  text-align: center;
++}
++
++.certificate-topline {
++  color: #4f46e5;
++  font-weight: 800;
++  letter-spacing: 6px;
++}
++
++.certificate-inner h1 {
++  margin: 22px 0;
++  color: #172554;
++  font-size: 34px;
++  letter-spacing: 8px;
++}
++
++.certificate-text {
++  max-width: 560px;
++  margin: 0 auto;
++  color: #334155;
++  font-size: 18px;
++  line-height: 2.1;
++}
++
++.certificate-text strong {
++  color: #312e81;
++  font-size: 22px;
++}
++
++.certificate-info {
++  display: grid;
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++  gap: 14px;
++  max-width: 520px;
++  margin: 34px auto;
++}
++
++.certificate-info div {
++  display: grid;
++  gap: 6px;
++  padding: 14px;
++  border-radius: 14px;
++  background: #eef2ff;
++}
++
++.certificate-info b {
++  color: #1e1b4b;
++}
++
++.certificate-footer {
++  display: flex;
++  justify-content: space-between;
++  gap: 16px;
++  color: #475569;
++  font-weight: 700;
++}
++
++@media (max-width: 720px) {
++  .certificate-hero,
++  .certificate-footer {
++    align-items: flex-start;
++    flex-direction: column;
++  }
++
++  .certificate-inner {
++    padding: 26px;
++  }
++
++  .certificate-inner h1 {
++    font-size: 26px;
++    letter-spacing: 4px;
++  }
++
++  .certificate-info {
++    grid-template-columns: 1fr;
++  }
++}
++</style>
+*** End Patch
+
+===== FILE backend/apps/courses/views.py =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\backend\apps\courses\views.py
+@@
+-        if not chapter.video:
+-            return response.Response({\"detail\": \"该章节暂未上传视频，不能标记完成。\"}, status=status.HTTP_400_BAD_REQUEST)
+-        if chapter.duration_seconds and watched_seconds < max(chapter.duration_seconds - 2, 0):
+-            return response.Response({\"detail\": \"请先完整观看章节视频。\"}, status=status.HTTP_400_BAD_REQUEST)
+-        if not chapter.duration_seconds and watched_seconds <= 0:
+-            return response.Response({\"detail\": \"请先完整观看章节视频。\"}, status=status.HTTP_400_BAD_REQUEST)
++        if chapter.video:
++            if chapter.duration_seconds and watched_seconds < max(chapter.duration_seconds - 2, 0):
++                return response.Response({\"detail\": \"请先完整观看章节视频。\"}, status=status.HTTP_400_BAD_REQUEST)
++            if not chapter.duration_seconds and watched_seconds <= 0:
++                return response.Response({\"detail\": \"请先完整观看章节视频。\"}, status=status.HTTP_400_BAD_REQUEST)
+*** End Patch
+
+===== FILE backend/apps/forum/preview.py =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\backend\apps\forum\preview.py
+@@
+ def refresh_resource_preview(resource, force=False):
++    if not resource.url:
++        resource.preview_image_url = \"\"
++        resource.preview_site_name = \"\"
++        resource.save(update_fields=[\"preview_image_url\", \"preview_site_name\"])
++        return resource
+     if resource.cover and not force:
+         return resource
+*** End Patch
+
+===== FILE frontend/src/views/CommunityView.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\CommunityView.vue
+@@
+ .star-button.active {
+   border-color: #f59e0b;
+   color: #b45309;
+   background: #fffbeb;
+ }
++
++.go-link {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  min-width: 46px;
++  min-height: 28px;
++  padding: 0 12px;
++  border-radius: 999px;
++  color: #fff !important;
++  background: linear-gradient(135deg, #2563eb, #7c3aed);
++  font-size: 12px;
++  font-weight: 900;
++  letter-spacing: 0.08em;
++  text-decoration: none;
++  box-shadow: 0 8px 18px rgb(79 70 229 / 0.22);
++}
++
++.go-link:hover {
++  color: #fff !important;
++  filter: brightness(1.05);
++}
+*** End Patch
+
+===== FILE backend/apps/forum/models.py =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\backend\apps\forum\models.py
+@@
+ class LearningResourceFavorite(models.Model):
+     resource = models.ForeignKey(LearningResource, on_delete=models.CASCADE, related_name=\"favorites\")
+     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name=\"learning_resource_favorites\")
+     created_at = models.DateTimeField(auto_now_add=True)
+ 
+     class Meta:
+         unique_together = (\"resource\", \"user\")
+         ordering = [\"-created_at\"]
++
++
++class CourseQuestion(models.Model):
++    class Status(models.TextChoices):
++        PENDING = \"pending\", \"待回复\"
++        ANSWERED = \"answered\", \"已回复\"
++        RESOLVED = \"resolved\", \"已解决\"
++
++    course = models.ForeignKey(\"courses.Course\", on_delete=models.CASCADE, related_name=\"questions\")
++    chapter = models.ForeignKey(\"courses.Chapter\", on_delete=models.SET_NULL, related_name=\"questions\", blank=True, null=True)
++    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name=\"course_questions\")
++    title = models.CharField(max_length=160)
++    content = models.TextField()
++    answer = models.TextField(blank=True)
++    answered_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name=\"answered_course_questions\", blank=True, null=True)
++    answered_at = models.DateTimeField(blank=True, null=True)
++    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
++    resolved_at = models.DateTimeField(blank=True, null=True)
++    created_at = models.DateTimeField(auto_now_add=True)
++    updated_at = models.DateTimeField(auto_now=True)
++
++    class Meta:
++        ordering = [\"-created_at\"]
+*** End Patch
+
+===== FILE backend/apps/forum/serializers.py =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\backend\apps\forum\serializers.py
+@@
+-from .models import CommunityPost, CommunityReply, ForumPost, ForumReply, LearningResource
++from .models import CommunityPost, CommunityReply, CourseQuestion, ForumPost, ForumReply, LearningResource
+@@
+ class LearningResourceSerializer(serializers.ModelSerializer):
+@@
+     def get_favorited_by_me(self, obj):
+         request = self.context.get(\"request\")
+         user = getattr(request, \"user\", None)
+         if not user or not user.is_authenticated:
+             return False
+         return obj.favorites.filter(user=user).exists()
++
++
++class CourseQuestionSerializer(serializers.ModelSerializer):
++    course_title = serializers.CharField(source=\"course.title\", read_only=True)
++    chapter_title = serializers.CharField(source=\"chapter.title\", read_only=True)
++    student_name = serializers.CharField(source=\"student.username\", read_only=True)
++    answered_by_name = serializers.CharField(source=\"answered_by.username\", read_only=True)
++    status_text = serializers.CharField(source=\"get_status_display\", read_only=True)
++
++    class Meta:
++        model = CourseQuestion
++        fields = [
++            \"id\",
++            \"course\",
++            \"course_title\",
++            \"chapter\",
++            \"chapter_title\",
++            \"student\",
++            \"student_name\",
++            \"title\",
++            \"content\",
++            \"answer\",
++            \"answered_by\",
++            \"answered_by_name\",
++            \"answered_at\",
++            \"status\",
++            \"status_text\",
++            \"resolved_at\",
++            \"created_at\",
++            \"updated_at\",
++        ]
++        read_only_fields = [
++            \"id\",
++            \"student\",
++            \"answer\",
++            \"answered_by\",
++            \"answered_at\",
++            \"status\",
++            \"resolved_at\",
++            \"created_at\",
++            \"updated_at\",
++        ]
+*** End Patch
+
+===== FILE backend/apps/forum/views.py =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\backend\apps\forum\views.py
+@@
+ from rest_framework import decorators, exceptions, permissions, response, viewsets
++from django.utils import timezone
+@@
+     CommunityPostLike,
+     CommunityReply,
++    CourseQuestion,
+@@
+     CommunityPostSerializer,
+     CommunityReplySerializer,
++    CourseQuestionSerializer,
+@@
+ class LearningResourceViewSet(viewsets.ModelViewSet):
+@@
+         if page is not None:
+             return self.get_paginated_response(serializer.data)
+         return response.Response(serializer.data)
++
++
++class CourseQuestionViewSet(viewsets.ModelViewSet):
++    serializer_class = CourseQuestionSerializer
++    permission_classes = [permissions.IsAuthenticated]
++    filterset_fields = [\"course\", \"chapter\", \"status\"]
++    search_fields = [\"title\", \"content\", \"answer\", \"course__title\", \"chapter__title\", \"student__username\"]
++
++    def get_queryset(self):
++        user = self.request.user
++        queryset = CourseQuestion.objects.select_related(\"course\", \"chapter\", \"student\", \"answered_by\", \"course__teacher\")
++        if user.is_platform_admin:
++            return queryset
++        if user.is_teacher:
++            return queryset.filter(course__teacher=user)
++        return queryset.filter(student=user)
++
++    def perform_create(self, serializer):
++        course = serializer.validated_data[\"course\"]
++        chapter = serializer.validated_data.get(\"chapter\")
++        if chapter and chapter.course_id != course.id:
++            raise exceptions.PermissionDenied(\"章节不属于该课程。\")
++        if not Enrollment.objects.filter(student=self.request.user, course=course).exists():
++            raise exceptions.PermissionDenied(\"只有报名课程后才能提问。\")
++        serializer.save(student=self.request.user)
++
++    @decorators.action(detail=True, methods=[\"post\"])
++    def answer(self, request, pk=None):
++        question = self.get_object()
++        if not (request.user.is_platform_admin or question.course.teacher_id == request.user.id):
++            raise exceptions.PermissionDenied(\"只能回复自己课程下的疑问。\")
++        answer = (request.data.get(\"answer\") or \"\").strip()
++        if not answer:
++            raise exceptions.ValidationError(\"回复内容不能为空。\")
++        question.answer = answer
++        question.answered_by = request.user
++        question.answered_at = timezone.now()
++        question.status = CourseQuestion.Status.ANSWERED
++        question.resolved_at = None
++        question.save(update_fields=[\"answer\", \"answered_by\", \"answered_at\", \"status\", \"resolved_at\", \"updated_at\"])
++        return response.Response(self.get_serializer(question).data)
++
++    @decorators.action(detail=True, methods=[\"post\"])
++    def resolve(self, request, pk=None):
++        question = self.get_object()
++        if not (request.user.is_platform_admin or question.student_id == request.user.id):
++            raise exceptions.PermissionDenied(\"只能确认自己的疑问已解决。\")
++        if not question.answer:
++            raise exceptions.ValidationError(\"老师回复后才能标记已解决。\")
++        question.status = CourseQuestion.Status.RESOLVED
++        question.resolved_at = timezone.now()
++        question.save(update_fields=[\"status\", \"resolved_at\", \"updated_at\"])
++        return response.Response(self.get_serializer(question).data)
+*** End Patch
+
+===== FILE backend/config/urls.py =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\backend\config\urls.py
+@@
+-from apps.forum.views import (
++from apps.forum.views import (
+     CommunityPostViewSet,
+     CommunityReplyViewSet,
++    CourseQuestionViewSet,
+     ForumPostViewSet,
+     ForumReplyViewSet,
+     LearningResourceViewSet,
+@@
+ router.register(\"community/resources\", LearningResourceViewSet, basename=\"learning-resource\")
+ router.register(\"certificates\", CertificateViewSet, basename=\"certificate\")
++router.register(\"course-questions\", CourseQuestionViewSet, basename=\"course-question\")
+*** End Patch
+
+===== FILE frontend/src/views/student/LearningView.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\student\LearningView.vue
+@@
+ .materials,
+-.exam-list {
++.question-list {
+   display: grid;
+   gap: 8px;
+   margin: 12px 0;
+ }
+@@
+ .resource-card :deep(.el-card__header),
+ .chapter-content-card :deep(.el-card__header),
+-.chapter-tree-card :deep(.el-card__header) {
++.chapter-tree-card :deep(.el-card__header),
++.question-card :deep(.el-card__header) {
+   background: linear-gradient(135deg, #f8fafc, #eef2ff);
+ }
++
++.question-form {
++  margin-bottom: 16px;
++}
++
++.question-item {
++  padding: 14px;
++  border: 1px solid #e2e8f0;
++  border-radius: 14px;
++  background: #fff;
++}
++
++.question-head {
++  display: flex;
++  justify-content: space-between;
++  gap: 12px;
++  align-items: flex-start;
++}
++
++.answer-box {
++  margin-top: 12px;
++  padding: 12px;
++  border-radius: 12px;
++  background: #f0f9ff;
++}
+*** End Patch
+
+===== FILE frontend/src/views/student/StudentDashboard.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\student\StudentDashboard.vue
+@@
+ .feedback-certificates::before {
+   background: linear-gradient(180deg, #4f46e5, #0ea5e9);
+ }
++
++.question-status-grid {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 14px;
++  margin-bottom: 16px;
++}
++
++.question-group + .question-group {
++  margin-top: 18px;
++  padding-top: 16px;
++  border-top: 1px solid #e2e8f0;
++}
++
++.question-group h4 {
++  margin: 0 0 12px;
++  color: #1e293b;
++}
++
++.question-center-item {
++  padding: 14px;
++  margin-bottom: 12px;
++  border: 1px solid #e2e8f0;
++  border-radius: 14px;
++  background: #fff;
++}
++
++.question-center-head {
++  display: flex;
++  justify-content: space-between;
++  gap: 12px;
++  align-items: flex-start;
++}
++
++.answer-box {
++  margin-top: 12px;
++  padding: 12px;
++  border-radius: 12px;
++  background: #f0f9ff;
++}
+*** End Patch
+
+===== FILE frontend/src/views/teacher/TeacherDashboard.vue =====
+*** Begin Patch
+*** Update File: d:\董仕杰\在线教育平台\frontend\src\views\	eacher\TeacherDashboard.vue
+@@
+           <TeacherCoursesView v-if=\"activePanel === 'courses'\" />
+           <TeacherExamsView v-else-if=\"activePanel === 'exams'\" />
+-          <TeacherProgressView v-else />
++          <TeacherProgressView v-else-if=\"activePanel === 'progress'\" />
++          <TeacherQuestionsView v-else />
+@@
+ import TeacherCoursesView from './TeacherCoursesView.vue'
+ import TeacherExamsView from './TeacherExamsView.vue'
+ import TeacherProgressView from './TeacherProgressView.vue'
++import TeacherQuestionsView from './TeacherQuestionsView.vue'
+@@
+ const teacherPanels = [
+   { name: 'courses', label: '课程管理', desc: '课程、章节、资料' },
+   { name: 'exams', label: '考试管理', desc: '考试、题目、选项' },
+-  { name: 'progress', label: '学习情况', desc: '进度、成绩、数据' }
++  { name: 'progress', label: '学习情况', desc: '进度、成绩、数据' },
++  { name: 'questions', label: '处理疑问', desc: '学生提问、教师回复' }
+ ]
+*** End Patch
