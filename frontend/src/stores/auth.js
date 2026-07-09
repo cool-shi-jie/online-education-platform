@@ -8,10 +8,15 @@ export const useAuthStore = defineStore('auth', {
     refresh: localStorage.getItem('refresh') || ''
   }),
   getters: {
-    isLoggedIn: (state) => Boolean(state.access),
+    isLoggedIn: (state) => Boolean(state.access || state.refresh),
     role: (state) => state.user?.role
   },
   actions: {
+    syncFromStorage() {
+      this.access = localStorage.getItem('access') || ''
+      this.refresh = localStorage.getItem('refresh') || ''
+      this.user = JSON.parse(localStorage.getItem('user') || 'null')
+    },
     async login(payload) {
       const { data } = await http.post('/auth/login/', payload)
       this.access = data.access
@@ -26,12 +31,16 @@ export const useAuthStore = defineStore('auth', {
     },
     async fetchMe() {
       const { data } = await http.get('/auth/me/')
+      this.access = localStorage.getItem('access') || this.access
+      this.refresh = localStorage.getItem('refresh') || this.refresh
       this.user = data
       localStorage.setItem('user', JSON.stringify(data))
       return data
     },
     async updateProfile(payload) {
       const { data } = await http.patch('/auth/me/', payload)
+      this.access = localStorage.getItem('access') || this.access
+      this.refresh = localStorage.getItem('refresh') || this.refresh
       this.user = data
       localStorage.setItem('user', JSON.stringify(data))
       return data

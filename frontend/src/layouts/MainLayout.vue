@@ -17,10 +17,16 @@
       </nav>
       <div class="userbar">
         <template v-if="auth.isLoggedIn">
-          <span class="user-name">{{ auth.user?.username }}（{{ roleLabel }}）</span>
           <el-dropdown trigger="click">
-            <el-button class="avatar-btn" text>
-              <el-avatar :size="30" :src="auth.user?.avatar">{{ auth.user?.username?.slice(0, 1) }}</el-avatar>
+            <el-button class="user-identity-card" text>
+              <el-avatar class="identity-avatar" :size="38" :src="auth.user?.avatar">{{ auth.user?.username?.slice(0, 1) }}</el-avatar>
+              <span class="identity-copy">
+                <strong>{{ auth.user?.username }}</strong>
+                <span class="identity-meta">
+                  <span class="role-badge" :class="roleClass">{{ roleLabel }}</span>
+                  <span class="status-leaf">{{ statusLabel }}</span>
+                </span>
+              </span>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
@@ -43,7 +49,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BrandLogo from '../components/BrandLogo.vue'
 import { useAuthStore } from '../stores/auth'
@@ -52,6 +58,24 @@ const auth = useAuthStore()
 const router = useRouter()
 
 const roleLabel = computed(() => ({ student: '学生', teacher: '教师', admin: '管理员' }[auth.role] || '访客'))
+const roleClass = computed(() => `role-${auth.role || 'guest'}`)
+const statusLabel = computed(() => {
+  const labels = {
+    happy: '😊 开心',
+    cool: '😐 冷漠',
+    learning: '📖 学习中',
+    focused: '🎯 专注中',
+    reading: '📚 阅读中',
+    practicing: '💻 实践中',
+    thinking: '🤔 思考中',
+    examing: '📝 备考中',
+    asking: '🙋 求助中',
+    busy: '💼 忙碌',
+    resting: '🌿 休息中',
+    charging: '⚡ 充电中'
+  }
+  return labels[auth.user?.status] || '📖 学习中'
+})
 
 const roleCenterNav = computed(() => {
   if (auth.role === 'teacher') return { label: '教师中心', path: '/teacher', icon: '师' }
@@ -80,6 +104,18 @@ function logout() {
   auth.logout()
   router.push('/login')
 }
+
+function syncAuthState() {
+  auth.syncFromStorage()
+}
+
+onMounted(() => {
+  window.addEventListener('auth-storage-cleared', syncAuthState)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('auth-storage-cleared', syncAuthState)
+})
 </script>
 
 <style scoped>
@@ -199,13 +235,106 @@ function logout() {
   gap: 10px;
 }
 
-.user-name {
+.user-identity-card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 12px 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #0f3f57;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, rgba(34, 197, 94, 0.72), rgba(14, 165, 233, 0.72), rgba(30, 58, 138, 0.64)) border-box;
+  box-shadow: 0 12px 26px rgba(15, 63, 87, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.user-identity-card:hover,
+.user-identity-card:focus {
+  color: #0f3f57;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15, 118, 110, 0.16);
+}
+
+.identity-avatar {
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 8px 18px rgba(14, 165, 233, 0.14);
+}
+
+.identity-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  line-height: 1;
+  text-align: left;
+}
+
+.identity-copy strong {
+  max-width: 112px;
+  overflow: hidden;
+  color: #0f3f57;
+  font-size: 14px;
+  font-weight: 900;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.avatar-btn {
-  padding: 0;
-  border: none;
+.identity-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  color: #0f766e;
+  background: #ecfeff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.role-teacher {
+  color: #0369a1;
+  background: #e0f2fe;
+}
+
+.role-admin {
+  color: #1e3a8a;
+  background: #dbeafe;
+}
+
+.status-leaf {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px 0 18px;
+  color: #31566a;
+  background: #f8fafc;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.status-leaf::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  width: 9px;
+  height: 7px;
+  background: linear-gradient(135deg, #22c55e, #0f766e);
+  border-radius: 8px 1px 8px 1px;
+  transform: rotate(-24deg);
 }
 
 @media (max-width: 860px) {
@@ -234,6 +363,20 @@ function logout() {
     flex: 1;
     min-width: 18px;
     margin: 0 5px;
+  }
+
+  .user-identity-card {
+    min-height: 44px;
+    padding-right: 8px;
+  }
+
+  .identity-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .identity-meta {
+    display: none;
   }
 }
 </style>
