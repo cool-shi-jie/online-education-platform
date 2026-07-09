@@ -90,6 +90,6 @@ class ExamSubmissionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         exam = serializer.validated_data["exam"]
         score = calculate_score(exam, serializer.validated_data["answers"])
-        passed = score >= exam.course.pass_score
+        passed = score >= exam.pass_score
         submission = serializer.save(student=self.request.user, score=score, passed=passed)
         issue_certificate_if_eligible(submission)

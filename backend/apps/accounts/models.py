@@ -10,7 +10,16 @@ class User(AbstractUser):
         TEACHER = "teacher", "教师"
         ADMIN = "admin", "管理员"
 
+    class Status(models.TextChoices):
+        HAPPY = "happy", "开心"
+        COOL = "cool", "冷漠"
+        LEARNING = "learning", "学习中"
+        BUSY = "busy", "忙碌"
+        RESTING = "resting", "休息中"
+        CHARGING = "charging", "充电中"
+
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.LEARNING)
     avatar = models.ImageField(upload_to="avatars/", validators=[validate_image], blank=True, null=True)
     bio = models.TextField(blank=True)
 

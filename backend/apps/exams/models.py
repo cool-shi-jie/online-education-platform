@@ -8,6 +8,8 @@ class Exam(models.Model):
     description = models.TextField(blank=True)
     is_published = models.BooleanField(default=False)
     total_score = models.PositiveIntegerField(default=100)
+    pass_score = models.PositiveIntegerField(default=60)
+    excellent_score = models.PositiveIntegerField(default=85)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

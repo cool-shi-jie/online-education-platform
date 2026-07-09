@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -37,6 +37,13 @@ def _extract_preview(html):
     return image_url, site_name
 
 
+def site_icon_url(url):
+    domain = urlparse(url).netloc
+    if not domain:
+        return ""
+    return f"https://www.google.com/s2/favicons?domain={quote(domain)}&sz=256"
+
+
 def refresh_resource_preview(resource, force=False):
     if not resource.url:
         resource.preview_image_url = ""
@@ -57,7 +64,7 @@ def refresh_resource_preview(resource, force=False):
     if image_url:
         image_url = urljoin(resource.url, image_url)
 
-    resource.preview_image_url = image_url
+    resource.preview_image_url = image_url or site_icon_url(resource.url)
     resource.preview_site_name = site_name
     resource.save(update_fields=["preview_image_url", "preview_site_name"])
     return resource

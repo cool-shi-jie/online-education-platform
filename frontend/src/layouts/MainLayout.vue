@@ -1,14 +1,20 @@
 <template>
   <el-container class="layout">
     <el-header class="header">
-      <div class="brand" @click="$router.push('/courses')">在线教育平台</div>
-      <el-menu mode="horizontal" router :default-active="$route.path" class="menu">
-        <el-menu-item index="/courses">课程广场</el-menu-item>
-        <el-menu-item v-if="auth.role === 'student'" index="/student">学生中心</el-menu-item>
-        <el-menu-item v-if="auth.role === 'teacher'" index="/teacher">教师中心</el-menu-item>
-        <el-menu-item v-if="auth.role === 'admin'" index="/admin">管理后台</el-menu-item>
-        <el-menu-item v-if="auth.isLoggedIn" index="/community">社区中心</el-menu-item>
-      </el-menu>
+      <div class="brand" @click="$router.push('/courses')">
+        <BrandLogo size="sm" />
+      </div>
+      <nav class="menu" aria-label="主导航">
+        <div class="nav-tree">
+          <template v-for="(item, index) in visibleTreeNavItems" :key="item.path">
+            <button class="nav-node" :class="{ active: isNavActive(item) }" type="button" @click="router.push(item.path)">
+              <span class="node-dot">{{ item.icon }}</span>
+              <span>{{ item.label }}</span>
+            </button>
+            <span v-if="index < visibleTreeNavItems.length - 1" class="nav-connector" :class="{ active: isConnectorActive(index) }"></span>
+          </template>
+        </div>
+      </nav>
       <div class="userbar">
         <template v-if="auth.isLoggedIn">
           <span class="user-name">{{ auth.user?.username }}（{{ roleLabel }}）</span>
@@ -39,12 +45,36 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import BrandLogo from '../components/BrandLogo.vue'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
 
 const roleLabel = computed(() => ({ student: '学生', teacher: '教师', admin: '管理员' }[auth.role] || '访客'))
+
+const roleCenterNav = computed(() => {
+  if (auth.role === 'teacher') return { label: '教师中心', path: '/teacher', icon: '师' }
+  if (auth.role === 'admin') return { label: '管理后台', path: '/admin', icon: '管' }
+  if (auth.role === 'student') return { label: '学生中心', path: '/student', icon: '学' }
+  return null
+})
+
+const visibleTreeNavItems = computed(() => {
+  const items = [{ label: '课程广场', path: '/courses', icon: '课' }]
+  if (roleCenterNav.value) items.push(roleCenterNav.value)
+  if (auth.isLoggedIn) items.push({ label: '社区中心', path: '/community', icon: '社' })
+  return items
+})
+
+function isNavActive(item) {
+  if (item.path === '/courses') return router.currentRoute.value.path.startsWith('/courses')
+  return router.currentRoute.value.path === item.path || router.currentRoute.value.path.startsWith(`${item.path}/`)
+}
+
+function isConnectorActive(index) {
+  return visibleTreeNavItems.value.slice(0, index + 2).some((item) => isNavActive(item))
+}
 
 function logout() {
   auth.logout()
@@ -61,19 +91,106 @@ function logout() {
   display: flex;
   align-items: center;
   gap: 18px;
+  height: 72px;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .brand {
-  font-size: 18px;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
 }
 
 .menu {
+  display: flex;
   flex: 1;
-  border-bottom: 0;
+  justify-content: center;
+  min-width: 0;
+}
+
+.nav-tree {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(560px, 100%);
+}
+
+.nav-node {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 112px;
+  padding: 9px 14px;
+  color: #31566a;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(15, 63, 87, 0.06);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-node:hover {
+  color: #0f766e;
+  border-color: #7dd3fc;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(14, 165, 233, 0.12);
+}
+
+.nav-node.active {
+  color: #fff;
+  background:
+    radial-gradient(circle at 16% 20%, rgba(255, 255, 255, 0.34), transparent 28%),
+    linear-gradient(135deg, #0ea5e9, #0f766e);
+  border-color: transparent;
+  box-shadow: 0 14px 30px rgba(14, 165, 233, 0.28);
+}
+
+.node-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: #0f766e;
+  background: #ecfeff;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.nav-node.active .node-dot {
+  color: #0f766e;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.nav-connector {
+  width: clamp(34px, 5vw, 72px);
+  height: 3px;
+  margin: 0 8px;
+  background: linear-gradient(90deg, #bae6fd, #bbf7d0);
+  border-radius: 999px;
+  transition:
+    height 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.nav-connector.active {
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #0f766e);
+  box-shadow: 0 8px 16px rgba(14, 165, 233, 0.16);
 }
 
 .userbar {
@@ -89,5 +206,34 @@ function logout() {
 .avatar-btn {
   padding: 0;
   border: none;
+}
+
+@media (max-width: 860px) {
+  .header {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .menu {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .nav-tree {
+    width: 100%;
+  }
+
+  .nav-node {
+    min-width: auto;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .nav-connector {
+    flex: 1;
+    min-width: 18px;
+    margin: 0 5px;
+  }
 }
 </style>

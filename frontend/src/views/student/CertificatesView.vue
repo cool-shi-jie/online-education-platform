@@ -12,7 +12,9 @@
       <el-card v-for="certificate in certificates" :key="certificate.id" shadow="hover" class="certificate-card">
         <div class="card-ribbon">网页证书</div>
         <div class="card-body">
-          <span class="cert-mark">D社</span>
+          <span class="cert-mark">
+            <BrandLogo size="sm" mark-only />
+          </span>
           <h3>{{ certificate.course_title }}</h3>
           <p class="muted">获证人：{{ certificate.student_name }}</p>
           <div class="cert-meta">
@@ -35,7 +37,10 @@
     <el-dialog v-model="certificateVisible" title="网页虚拟证书" width="760px">
       <div v-if="currentCertificate" class="virtual-certificate">
         <div class="certificate-inner">
-          <div class="certificate-topline">D社在线教育平台</div>
+          <div class="certificate-topline">
+            <BrandLogo size="sm" />
+            <span>水木学堂在线教育平台</span>
+          </div>
           <h1>课程结业优秀证书</h1>
           <p class="certificate-text">
             兹证明
@@ -55,7 +60,7 @@
             </div>
           </div>
           <div class="certificate-footer">
-            <span>认证平台：D社在线教育平台</span>
+            <span>认证平台：水木学堂在线教育平台</span>
             <span>优秀结业认证</span>
           </div>
         </div>
@@ -70,6 +75,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import BrandLogo from '../../components/BrandLogo.vue'
 import http from '../../api/http'
 
 const certificates = ref([])
@@ -126,7 +132,7 @@ onMounted(load)
   width: 128px;
   padding: 5px 0;
   color: #fff;
-  background: #4f46e5;
+  background: #0f766e;
   text-align: center;
   font-size: 12px;
   transform: rotate(35deg);
@@ -140,12 +146,10 @@ onMounted(load)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  color: #fff;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  font-weight: 800;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(34, 197, 94, 0.18));
 }
 
 .certificate-card h3 {
@@ -184,29 +188,32 @@ onMounted(load)
 .virtual-certificate {
   padding: 16px;
   border-radius: 18px;
-  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  background: linear-gradient(135deg, #e0f7fa, #f0fdf4);
 }
 
 .certificate-inner {
   padding: 44px;
-  border: 8px double #4f46e5;
+  border: 8px double #1e5b7a;
   border-radius: 18px;
   background:
-    radial-gradient(circle at top left, rgba(79, 70, 229, 0.12), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.12), transparent 34%),
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.14), transparent 34%),
     #fff;
   text-align: center;
 }
 
 .certificate-topline {
-  color: #4f46e5;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #1e5b7a;
   font-weight: 800;
-  letter-spacing: 6px;
+  letter-spacing: 4px;
 }
 
 .certificate-inner h1 {
   margin: 22px 0;
-  color: #172554;
+  color: #0f3f57;
   font-size: 34px;
   letter-spacing: 8px;
 }
@@ -220,7 +227,7 @@ onMounted(load)
 }
 
 .certificate-text strong {
-  color: #312e81;
+  color: #14532d;
   font-size: 22px;
 }
 
@@ -237,11 +244,11 @@ onMounted(load)
   gap: 6px;
   padding: 14px;
   border-radius: 14px;
-  background: #eef2ff;
+  background: #ecfeff;
 }
 
 .certificate-info b {
-  color: #1e1b4b;
+  color: #0f3f57;
 }
 
 .certificate-footer {

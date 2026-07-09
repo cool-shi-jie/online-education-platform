@@ -43,6 +43,17 @@ class CourseViewSet(viewsets.ModelViewSet):
             raise exceptions.PermissionDenied("只有教师可以创建课程。")
         serializer.save(teacher=self.request.user)
 
+    @decorators.action(detail=False, methods=["get"], permission_classes=[permissions.AllowAny])
+    def categories(self, request):
+        categories = (
+            Course.objects.filter(status=Course.Status.PUBLISHED)
+            .exclude(category="")
+            .order_by("category")
+            .values_list("category", flat=True)
+            .distinct()
+        )
+        return response.Response(list(categories))
+
     @decorators.action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def enroll(self, request, pk=None):
         course = self.get_object()

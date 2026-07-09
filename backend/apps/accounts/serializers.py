@@ -13,14 +13,14 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "role", "avatar", "bio", "is_active", "date_joined"]
+        fields = ["id", "username", "email", "role", "status", "avatar", "bio", "is_active", "date_joined"]
         read_only_fields = ["id", "date_joined"]
 
 
 class MeUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["username", "email", "avatar", "bio"]
+        fields = ["username", "email", "avatar", "bio", "status"]
 
 
 class ChangePasswordSerializer(serializers.Serializer):
